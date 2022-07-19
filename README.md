@@ -4,10 +4,10 @@ How to start the bot?
 As first you should to create a `config.yml` file with content:
 
 ```yaml
-Token: "your token here"
-ID: clientIDHere
-prefix: "prefix" #default value is "-"
-color: 0xHEXCOL #color for embed, default value is 0xff3375
+Token: "abCdEfGhI" # token here
+ID: 12345678 # client id (now random)
+prefix: "prefix" # default value is "-"
+color: 0xHEXCOL # color for embed, default value is 0xff3375
 ```
 Then go to terminal and run this command:
 ```console
