@@ -59,7 +59,7 @@ end
 bot.command :info do |event|
 	event.channel.send_embed do |embed|
 		embed.title = "Hjass v0.1"
-		embed.description =  "Это тестовый бот сделанный чисто по приколу\nЯзык программирования: Ruby\nСделал: Eldyj#9888"
+		embed.description =  "Это тестовый бот сделанный чисто по приколу\nЯзык программирования: Ruby\nСделал: Eldyj#9888\nПрисутствую на #{bot.servers.length} серверах"
 		embed.colour = config["color"]
 	end
 end
@@ -277,7 +277,7 @@ bot.command :clear do |event, args|
 			if howmatch > 9999
 				resault = 'Слишком много сообщений для удаления!'
 			else
-				disclaimer = args.to_i > 100 ? '(возможно медленно потомучто сообщение удалялись с шагом 100)' : ''
+				disclaimer = args.to_i > 100 ? '(возможно медленно потому-что сообщение удалялись с шагом 100)' : ''
 				resault = "Канал успешно очищен, **#{args}** сообений удалено\n#{disclaimer}"
 			end
     end
@@ -290,4 +290,4 @@ bot.command :clear do |event, args|
 end
 
 at_exit { bot.stop }
-bot.run
+bot.run #.idle.stream "#{bot.servers.length} серверов", nil
