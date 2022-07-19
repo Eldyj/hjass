@@ -14,6 +14,11 @@ Then go to terminal and run this command:
 $ bundle
 ```
 
+Ater this commands you can run it:
+```console
+$ ruby index.rb
+```
+
 If you havent discordrb in your gems run this in terminal:
 ```console
 $ gem i discordrb
