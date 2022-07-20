@@ -19,6 +19,7 @@ bot =	Discordrb::Commands::CommandBot.new(
 
 bot.command :help do |event|
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Команды"
 		embed.description = """
 			*---Информация*
@@ -30,6 +31,7 @@ bot.command :help do |event|
 			`choose`: выбирает что лучше в процентах из 2х вещей
 			`coin`: бот подбросит монету
 			`cringe`: определяет степень кринжа
+			`server`: информация о сервере
 			`profile`: ваш профиль в сообщении
 			`rand`: рандомное число
 			`randstr`: рандомная строка
@@ -52,6 +54,7 @@ end
 bot.command :changelog do |event, version|
 	version = version == nil ? config['version'] : version.to_f <= config['version'] ? version.to_f : config['version']
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "#{config['name']} v#{version} changelog"
 		embed.description =  YAML.load_file('changelog.yml')[version]
 		embed.colour = config['color']
@@ -60,6 +63,7 @@ end
 
 bot.command :github do |event|
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = 'GitHub'
 		embed.description = "#{config['name']} - это бот с открытым исходным кодом, посмотреть его можно на [GitHub](https://github.com/Eldyj/hjass)"
 		embed.colour = config['color']
@@ -68,6 +72,7 @@ end
 
 bot.command :info do |event|
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "#{config['name']} v#{config['version']}"
 		embed.description = """
 			Присутствую на #{bot.servers.length} серверах
@@ -92,6 +97,7 @@ bot.command :coin, max_args:1 do |event, args|
 		win = coin == 1 ? variants[variant][4] : variants[variant][5]
 	end
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Монета"
 		embed.description = win
 		embed.colour = config['color']
@@ -99,20 +105,24 @@ bot.command :coin, max_args:1 do |event, args|
 end
 
 bot.command :choose do |event, *args|
-	args = args.length == 4 ? ["#{args[0]} #{args[1]}", "#{args[2]} #{args[3]}"] : args
+	wha1 = rand 0 .. 100
 	event.channel.send_embed do |embed|
-		wha1 = rand 0 .. 100
-		embed.description = "#{args[0]} - #{wha1}%\n#{args[1]} - #{100 - wha1}%"
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
+		embed.description = """
+		#{args[0]} - #{wha1}%
+		#{args[1]} - #{100 - wha1}%
+		"""
 		embed.colour = config['color']
 	end
 end
 
 bot.command :cringe do |event, *args|
+	args = args.join ' ' 
+	args = args.downcase
+	who = args == "я" ? "Ты" : args == "ты" ? "Я" : args
+	cringe = args == "ты" ? "0" : rand(0 ... 101)
 	event.channel.send_embed do |embed|
-		args = args.join ' '
-		args = args.downcase
-		who = args == "я" ? "Ты" : args == "ты" ? "Я" : args
-		cringe = args == "ты" ? "0" : rand(0 ... 101)
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.description = "#{who} на #{cringe}% кринж"
 		embed.colour = config['color']
 	end
@@ -127,6 +137,7 @@ bot.command :rand, min_args:0, max_args:2 do |event, startnum, lastnum|
 		resault = rand startnum.to_i ... lastnum.to_i
 	end
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Рандомное число"
 		embed.description = resault
 		embed.colour = config['color']
@@ -157,23 +168,53 @@ bot.command :randstr, min_args:0,max_args:2 do |event, lang, length|
 		resault = 'ОШИБКА: слишком большое число!'
 	end
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Рандомная строка"
 		embed.description = resault
 		embed.colour = config['color']
 	end
 end
 
-bot.command :profile do |event|
-	boost_time = event.user.boosting_since == nil ? 'никогда' : boosttime = event.user.boosting_since
+bot.command :server do |event|
 	event.channel.send_embed do |embed|
-		embed.title = "#{event.user.username}"
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
+		embed.title = "#{event.server.name}"
 		embed.description = """
-			идентификатор: **#{event.user.id}**
-			высшая роль: **#{event.user.highest_role.name}**
-			присоеденился: **#{event.user.joined_at}**
-			последний буст: **#{boost_time}**
+			владелец: **#{event.server.owner.distinct}**
+			id сервера: **#{event.server.id}**
+			кол-во ролей: **#{event.server.roles.length}**
+			кол-во участников: **#{event.server.member_count}**
+			кол-во каналов: **#{event.server.channels.length}**
+			кол-во эмодзи: **#{event.server.emoji.length}**
+			уровень буста: **#{event.server.boost_level}**
 		"""
-		embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new url: event.user.avatar_url
+		embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new url: event.server.icon_url
+		embed.colour = config['color']
+	end
+end
+
+bot.command :avatar do |event, member|
+	member = member != nil ? event.bot.parse_mention(member).on(event.server) : event.user
+	event.channel.send_embed do |embed|
+		embed.image = Discordrb::Webhooks::EmbedImage.new url: member.avatar_url
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: member.distinct, icon_url: event.user.avatar_url
+	end
+end
+
+bot.command :profile do |event, member|
+	member = member != nil ? event.bot.parse_mention(member).on(event.server) : event.user
+	boost_time = member.boosting_since == nil ? 'Никогда' : member.boosting_since
+	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
+		embed.title = "#{member.username}"
+		embed.description = """
+			идентификатор: **#{member.id}**
+			высшая роль: **#{member.highest_role.name}**
+			последний буст: **#{boost_time}**
+			присоеденился: **#{member.joined_at.to_s[0 ... 18]}**
+			присоеденился в дискорд: **#{member.creation_time.to_s[0 ... 18]}**
+		"""
+		embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new url: member.avatar_url
 		embed.colour = config['color']
 	end
 end
@@ -192,6 +233,7 @@ bot.command :ban ,min_args:1, max_args:1 do |event, args|
     resault = 'У вас нет прав что-бы отправить этого пользователя в баню'
   end
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Бан"
 		embed.description = resault
 		embed.colour = config['color']
@@ -232,6 +274,7 @@ bot.command :clear do |event, args|
     end
   end
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Очистка"
 		embed.description = resault
 		embed.colour = config['color']
@@ -252,6 +295,7 @@ bot.command :kick, min_args:1, max_args:1 do |event, args|
 		resault = 'У вас нет прав на изгнание пользователей'
 	end
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Кик"
 		embed.description = resault
 		embed.colour = config['color']
@@ -260,6 +304,7 @@ end
 
 bot.command :space0_decode do |event, *args|
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Space 0"
 		embed.description = Space0::decode_s0 args.join ' '
 		embed.colour = config['color']
@@ -268,6 +313,7 @@ end
 
 bot.command :space0_encode do |event, *args|
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Space 0"
 		embed.description = Space0::encode_s0 args.join ' '
 		embed.colour = config['color']
@@ -276,6 +322,7 @@ end
 
 bot.command :wronglay_decode do |event, *args|
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Неправильная раскладка"
 		embed.description = WrongLay::decode_wl args.join ' '
 		embed.colour = config['color']
@@ -284,6 +331,7 @@ end
 
 bot.command :wronglay_encode do |event, *args|
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Неправильная раскладка"
 		embed.description = WrongLay::encode_wl args.join ' '
 		embed.colour = config['color']
@@ -292,6 +340,7 @@ end
 
 bot.command :base64_decode do |event, *args|
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Base64"
 		embed.description = Base64.decode64 args.join ' '
 		embed.colour = config['color']
@@ -300,6 +349,7 @@ end
 
 bot.command :base64_encode do |event, *args|
 	event.channel.send_embed do |embed|
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct , icon_url: event.user.avatar_url
 		embed.title = "Base64"
 		embed.description = Base64.encode64 args.join ' '
 		embed.colour = config['color']
