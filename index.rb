@@ -81,7 +81,7 @@ bot.command :info do |event|
 			Сделал: Eldyj#9888
 			Язык программирования: Ruby
 		"""
-		embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new url: bot.avatar_url
+		# embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new url: bot.avatar_url.to_s
 		embed.colour = config['color']
 	end
 end
