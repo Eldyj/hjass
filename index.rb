@@ -1,84 +1,76 @@
-require 'discordrb'
-require 'discordrb/webhooks'
-require 'yaml'
-require 'base64'
-require './codings.rb'
-include Space0
-include WrongLay
-config = YAML.load_file("config.yml")
+require  'discordrb'                  # main library
+require  'discordrb/webhooks'         # for webhooks
+require  'yaml'                       # for configs
+require  'base64'                     # for base64 decode & encode
+require  './codings.rb'               # more custom codings
+include  Space0                       # a1z26 like coding
+include  WrongLay                     # decode wrong keyboard layour
+config = YAML.load_file "config.yml"  # bot config, for color name version, etc
 
-def isLang? var
+def is_lang? var
 	return var == 'ru' || var == 'eng' || var == 'рус' || var == 'англ'
 end
 
-def isQuote? var
-	return var == '\'' || var == '"' || var == '`'
-end
-
 bot =	Discordrb::Commands::CommandBot.new(
-	token: config["Token"],
-	client_id: config["ID"],
-	prefix: config["prefix"]
+	token:     config['token'],
+	client_id: config['id'],
+	prefix:    config['prefix']
 )
 
 bot.command :help do |event|
-	commands = """
-`Префикс`: `#{config['prefix'] != '' ? config['prefix'] : 'нету'}`
-`help`: список комманд
-`coin`: попробуйте угадать орёл или решка?
-`cringe`: определяет насколько кринжовое то что вы написали
-`choose`: выбирает что лучше в процентах из 2х вещей
-`info`: информация о боте
-`ban`: забанить упомянутого участника
-`clear`: Очищает от 2 до 9999 сообщений в канале
-`kick`: выгнать упомянутого участника
-`profile`: информация о вас
-`rand`: рандомное число диапазон которого можно настроить
-`randstr`: рандомная строка язык и длинну которой можно указать
-`base64_decode`: расшифровывает base64 кодировку
-`base64_encode`: преобразовывает ваше сообщение в base64
-`space0_decode`: расшифровывает space 0 кодировку
-`space0_encode`: преобразовывает ваше сообщение в space 0
-`wronglay_decode`: расшифровывает неправильную раскладку
-`wronglay_encode`: преобразовывает ваше сообщение в неправильнуюю раскладку
-"""
 	event.channel.send_embed do |embed|
 		embed.title = "Команды"
-		embed.description = commands
-		embed.colour = config["color"]
+		embed.description = """
+			*---Информация*
+			`help`: список комманд
+			`changelog`: изменения в обновлении
+			`github`: ссылка на исходный код
+			`info`: немного о боте
+			*---Приколы*
+			`choose`: выбирает что лучше в процентах из 2х вещей
+			`coin`: бот подбросит монету
+			`cringe`: определяет степень кринжа
+			`profile`: ваш профиль в сообщении
+			`rand`: рандомное число
+			`randstr`: рандомная строка
+			*---Модерирование*
+			`kick`: выгоняет пользователя
+			`ban`: банит пользователя
+			`clear`: чистит сообщения от 2 до 9999
+			*---Кодировки*
+			`base64_decode`: расшифровывает base64 кодировку
+			`base64_encode`: зашифровывает сообщение в base64
+			`space0_decode`: расшифровывает space 0 кодировку
+			`space0_encode`: зашифровывает сообщение в space 0
+			`wronglay_decode`: расшифровывает неправильную раскладку
+			`wronglay_encode`: зашифровывае сообщение в англ. раскладку
+		"""
+		embed.colour = config['color']
 	end
 end
 
-bot.command :ping do |event|
+bot.command :changelog do |event, version|
+	version = version == nil ? config['version'] : version.to_f <= config['version'] ? version.to_f : config['version']
 	event.channel.send_embed do |embed|
-		embed.description = "pong"
-		embed.colour = config["color"]
+		embed.title = "Hjass #{version} changelog"
+		embed.description =  YAML.load_file('changelog.yml')[version]
+		embed.colour = config['color']
+	end
+end
+
+bot.command :github do |event|
+	event.channel.send_embed do |embed|
+		embed.title = "GitHub"
+		embed.description = "Hjass - это бот с открытым исходным кодом, посмотреть его можно на [GitHub](https://github.com/Eldyj/hjass)"
+		embed.colour = config['color']
 	end
 end
 
 bot.command :info do |event|
 	event.channel.send_embed do |embed|
-		embed.title = "Hjass v0.1"
+		embed.title = "Hjass v#{config['version']}"
 		embed.description =  "Это тестовый бот сделанный чисто по приколу\nЯзык программирования: Ruby\nСделал: Eldyj#9888\nПрисутствую на #{bot.servers.length} серверах"
-		embed.colour = config["color"]
-	end
-end
-
-bot.command :choose do |event, *args|
-	args = args.length == 4 ? ["#{args[0]} #{args[1]}", "#{args[2]} #{args[3]}"] : args
-	event.channel.send_embed do |embed|
-		wha1 = rand 0 .. 100
-		embed.description = "#{args[0]} - #{wha1}%\n#{args[1]} - #{100 - wha1}%"
-		embed.colour = config["color"]
-	end
-end
-
-bot.command :cringe do |event, *args|
-	event.channel.send_embed do |embed|
-		who = args.join(' ').downcase == "я" ? "Ты" : args.join(' ').downcase == "ты" ? "Я" : args.join(' ')
-		cringe = args.join(' ').downcase == "ты" ? "0" : rand(0 ... 101)
-		embed.description = "#{who} на #{cringe}% кринж"
-		embed.colour = config["color"]
+		embed.colour = config['color']
 	end
 end
 
@@ -96,55 +88,27 @@ bot.command :coin, max_args:1 do |event, args|
 	event.channel.send_embed do |embed|
 		embed.title = "Монета"
 		embed.description = win
-		embed.colour = config["color"]
+		embed.colour = config['color']
 	end
 end
 
-bot.command :space0_decode do |event, *args|
+bot.command :choose do |event, *args|
+	args = args.length == 4 ? ["#{args[0]} #{args[1]}", "#{args[2]} #{args[3]}"] : args
 	event.channel.send_embed do |embed|
-		embed.title = "Space 0"
-		embed.description = Space0::decodes0 args.join ' '
-		embed.colour = config["color"]
+		wha1 = rand 0 .. 100
+		embed.description = "#{args[0]} - #{wha1}%\n#{args[1]} - #{100 - wha1}%"
+		embed.colour = config['color']
 	end
 end
 
-bot.command :space0_encode do |event, *args|
+bot.command :cringe do |event, *args|
 	event.channel.send_embed do |embed|
-		embed.title = "Space 0"
-		embed.description = Space0::encodes0 args.join ' '
-		embed.colour = config["color"]
-	end
-end
-
-bot.command :wronglay_decode do |event, *args|
-	event.channel.send_embed do |embed|
-		embed.title = "Неправильная раскладка"
-		embed.description = WrongLay::decodewl args.join ' '
-		embed.colour = config["color"]
-	end
-end
-
-bot.command :wronglay_encode do |event, *args|
-	event.channel.send_embed do |embed|
-		embed.title = "Неправильная раскладка"
-		embed.description = WrongLay::encodewl args.join ' '
-		embed.colour = config["color"]
-	end
-end
-
-bot.command :base64_decode do |event, *args|
-	event.channel.send_embed do |embed|
-		embed.title = "Base64"
-		embed.description = Base64.decode64 args.join ' '
-		embed.colour = config["color"]
-	end
-end
-
-bot.command :base64_encode do |event, *args|
-	event.channel.send_embed do |embed|
-		embed.title = "Base64"
-		embed.description = Base64.encode64 args.join ' '
-		embed.colour = config["color"]
+		args = args.join ' '
+		args = args.downcase
+		who = args == "я" ? "Ты" : args == "ты" ? "Я" : args
+		cringe = args == "ты" ? "0" : rand(0 ... 101)
+		embed.description = "#{who} на #{cringe}% кринж"
+		embed.colour = config['color']
 	end
 end
 
@@ -159,7 +123,7 @@ bot.command :rand, min_args:0, max_args:2 do |event, startnum, lastnum|
 	event.channel.send_embed do |embed|
 		embed.title = "Рандомное число"
 		embed.description = resault
-		embed.colour = config["color"]
+		embed.colour = config['color']
 	end
 end
 
@@ -167,12 +131,12 @@ bot.command :randstr, min_args:0,max_args:2 do |event, lang, length|
 	if lang == nil
 		lang = 'all'
 		length = rand 2 ... 40
-	elsif isLang?(lang) && length == nil
+	elsif is_lang?(lang) && length == nil
 		length = rand 2 ... 40
 	elsif length == nil
 		length = lang
 		lang = 'all'
-	elsif isLang?(length)
+	elsif is_lang?(length)
 		lang , length = length, lang
 	end
 	abc = lang == 'ru' || lang == 'рус' ? Space0::RuAbc : lang == 'eng' || lang == 'англ' ? Space0::EngAbc : lang == 'all' ? Space0::Abc : 'amogus is sus'
@@ -191,7 +155,7 @@ bot.command :randstr, min_args:0,max_args:2 do |event, lang, length|
 	event.channel.send_embed do |embed|
 		embed.title = "Рандомная строка"
 		embed.description = resault
-		embed.colour = config["color"]
+		embed.colour = config['color']
 	end
 end
 
@@ -200,38 +164,18 @@ bot.command :profile do |event|
 	event.channel.send_embed do |embed|
 		embed.title = "#{event.user.distinct}"
 		embed.description = """
-идентификатор: **#{event.user.id}**
-присоеденился: **#{event.user.joined_at}**
-последний буст: **#{boosttime}**
+			идентификатор: **#{event.user.id}**
+			присоеденился: **#{event.user.joined_at}**
+			последний буст: **#{boosttime}**
 		"""
 		embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new url: event.user.avatar_url
-		embed.colour = config["color"]
-	end
-end
-
-bot.command :kick, min_args:1, max_args:1 do |event, args|
-  member = event.bot.parse_mention args
-  if event.author.permission? :kick_members #|| event.user.id == 802199418345357353
-    begin
-			event.server.kick member
-		rescue Discordrb::Errors::NoPermission
-			resault = "У меня нет прав на кик #{args}!"
-		else
-			resault = "#{member.distinct} изгнан"
-    end
-	elsif !event.author.permission? :kick_members
-		resault = 'У вас нет прав на изгнание пользователей'
-	end
-	event.channel.send_embed do |embed|
-		embed.title = "Кик"
-		embed.description = resault
-		embed.colour = config["color"]
+		embed.colour = config['color']
 	end
 end
 
 bot.command :ban ,min_args:1, max_args:1 do |event, args|
   member = event.bot.parse_mention(args)
-  if event.author.permission? :ban_members #|| event.user.id == 802199418345357353
+  if event.author.permission? :ban_members
     begin
 			event.server.ban member
 		rescue Discordrb::Errors::NoPermission
@@ -245,13 +189,13 @@ bot.command :ban ,min_args:1, max_args:1 do |event, args|
 	event.channel.send_embed do |embed|
 		embed.title = "Бан"
 		embed.description = resault
-		embed.colour = config["color"]
+		embed.colour = config['color']
 	end
 end
 
 bot.command :clear do |event, args|
   howmatch = args.to_i
-	if event.author.permission? :manage_messages #|| event.user.id == 802199418345357353
+	if event.author.permission? :manage_messages
     begin
 			if howmatch <= 99
 				event.channel.prune howmatch
@@ -285,9 +229,77 @@ bot.command :clear do |event, args|
 	event.channel.send_embed do |embed|
 		embed.title = "Очистка"
 		embed.description = resault
-		embed.colour = config["color"]
+		embed.colour = config['color']
+	end
+end
+
+bot.command :kick, min_args:1, max_args:1 do |event, args|
+  member = event.bot.parse_mention args
+  if event.author.permission? :kick_members
+    begin
+			event.server.kick member
+		rescue Discordrb::Errors::NoPermission
+			resault = "У меня нет прав на кик #{args}!"
+		else
+			resault = "#{member.distinct} изгнан"
+    end
+	elsif !event.author.permission? :kick_members
+		resault = 'У вас нет прав на изгнание пользователей'
+	end
+	event.channel.send_embed do |embed|
+		embed.title = "Кик"
+		embed.description = resault
+		embed.colour = config['color']
+	end
+end
+
+bot.command :space0_decode do |event, *args|
+	event.channel.send_embed do |embed|
+		embed.title = "Space 0"
+		embed.description = Space0::decode_s0 args.join ' '
+		embed.colour = config['color']
+	end
+end
+
+bot.command :space0_encode do |event, *args|
+	event.channel.send_embed do |embed|
+		embed.title = "Space 0"
+		embed.description = Space0::encode_s0 args.join ' '
+		embed.colour = config['color']
+	end
+end
+
+bot.command :wronglay_decode do |event, *args|
+	event.channel.send_embed do |embed|
+		embed.title = "Неправильная раскладка"
+		embed.description = WrongLay::decode_wl args.join ' '
+		embed.colour = config['color']
+	end
+end
+
+bot.command :wronglay_encode do |event, *args|
+	event.channel.send_embed do |embed|
+		embed.title = "Неправильная раскладка"
+		embed.description = WrongLay::encode_wl args.join ' '
+		embed.colour = config['color']
+	end
+end
+
+bot.command :base64_decode do |event, *args|
+	event.channel.send_embed do |embed|
+		embed.title = "Base64"
+		embed.description = Base64.decode64 args.join ' '
+		embed.colour = config['color']
+	end
+end
+
+bot.command :base64_encode do |event, *args|
+	event.channel.send_embed do |embed|
+		embed.title = "Base64"
+		embed.description = Base64.encode64 args.join ' '
+		embed.colour = config['color']
 	end
 end
 
 at_exit { bot.stop }
-bot.run #.idle.stream "#{bot.servers.length} серверов", nil
+bot.run
