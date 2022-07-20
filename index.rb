@@ -33,6 +33,7 @@ bot.command :help do |event|
 			`cringe`: определяет степень кринжа
 			`server`: информация о сервере
 			`profile`: ваш профиль в сообщении
+			`avatar`: показывает аватар
 			`rand`: рандомное число
 			`randstr`: рандомная строка
 			*---Модерирование*
@@ -197,7 +198,8 @@ bot.command :avatar do |event, member|
 	member = member != nil ? event.bot.parse_mention(member).on(event.server) : event.user
 	event.channel.send_embed do |embed|
 		embed.image = Discordrb::Webhooks::EmbedImage.new url: member.avatar_url
-		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: member.distinct, icon_url: event.user.avatar_url
+		embed.description = member.name
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct, icon_url: event.user.avatar_url
 	end
 end
 
