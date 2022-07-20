@@ -52,7 +52,7 @@ end
 bot.command :changelog do |event, version|
 	version = version == nil ? config['version'] : version.to_f <= config['version'] ? version.to_f : config['version']
 	event.channel.send_embed do |embed|
-		embed.title = "Hjass #{version} changelog"
+		embed.title = "#{config['name']} v#{version} changelog"
 		embed.description =  YAML.load_file('changelog.yml')[version]
 		embed.colour = config['color']
 	end
@@ -60,16 +60,22 @@ end
 
 bot.command :github do |event|
 	event.channel.send_embed do |embed|
-		embed.title = "GitHub"
-		embed.description = "Hjass - это бот с открытым исходным кодом, посмотреть его можно на [GitHub](https://github.com/Eldyj/hjass)"
+		embed.title = 'GitHub'
+		embed.description = "#{config['name']} - это бот с открытым исходным кодом, посмотреть его можно на [GitHub](https://github.com/Eldyj/hjass)"
 		embed.colour = config['color']
 	end
 end
 
 bot.command :info do |event|
 	event.channel.send_embed do |embed|
-		embed.title = "Hjass v#{config['version']}"
-		embed.description =  "Это тестовый бот сделанный чисто по приколу\nЯзык программирования: Ruby\nСделал: Eldyj#9888\nПрисутствую на #{bot.servers.length} серверах"
+		embed.title = "#{config['name']} v#{config['version']}"
+		embed.description = """
+			Присутствую на #{bot.servers.length} серверах
+			Мой [discord](https://discord.gg/T6uazz8Shj) сервер
+			Сделал: Eldyj#9888
+			Язык программирования: Ruby
+		"""
+		embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new url: bot.avatar_url
 		embed.colour = config['color']
 	end
 end
@@ -129,13 +135,11 @@ end
 
 bot.command :randstr, min_args:0,max_args:2 do |event, lang, length|
 	if lang == nil
-		lang = 'all'
-		length = rand 2 ... 40
+		lang, length = 'all', rand(2 ... 40)
 	elsif is_lang?(lang) && length == nil
 		length = rand 2 ... 40
 	elsif length == nil
-		length = lang
-		lang = 'all'
+		length, lang = lang, 'all'
 	elsif is_lang?(length)
 		lang , length = length, lang
 	end
@@ -160,13 +164,14 @@ bot.command :randstr, min_args:0,max_args:2 do |event, lang, length|
 end
 
 bot.command :profile do |event|
-	boosttime = event.user.boosting_since == nil ? 'никогда' : boosttime = event.user.boosting_since
+	boost_time = event.user.boosting_since == nil ? 'никогда' : boosttime = event.user.boosting_since
 	event.channel.send_embed do |embed|
-		embed.title = "#{event.user.distinct}"
+		embed.title = "#{event.user.username}"
 		embed.description = """
 			идентификатор: **#{event.user.id}**
+			высшая роль: **#{event.user.highest_role.name}**
 			присоеденился: **#{event.user.joined_at}**
-			последний буст: **#{boosttime}**
+			последний буст: **#{boost_time}**
 		"""
 		embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new url: event.user.avatar_url
 		embed.colour = config['color']
