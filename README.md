@@ -8,6 +8,7 @@ Token: "abCdEfGhI" # token here
 ID: 12345678 # client id (now random)
 prefix: "prefix" # default value is "-"
 color: 0xHEXCOL # color for embed, default value is 0xff3375
+version: 0.1 # version of bot, now 0.2
 ```
 Then go to terminal and run this command:
 ```console
