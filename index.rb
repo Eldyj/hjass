@@ -194,15 +194,6 @@ bot.command :server do |event|
 	end
 end
 
-bot.command :avatar do |event, member|
-	member = member != nil ? event.bot.parse_mention(member).on(event.server) : event.user
-	event.channel.send_embed do |embed|
-		embed.image = Discordrb::Webhooks::EmbedImage.new url: member.avatar_url
-		embed.description = member.name
-		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct, icon_url: event.user.avatar_url
-	end
-end
-
 bot.command :profile do |event, member|
 	member = member != nil ? event.bot.parse_mention(member).on(event.server) : event.user
 	boost_time = member.boosting_since == nil ? 'Никогда' : member.boosting_since
@@ -218,6 +209,16 @@ bot.command :profile do |event, member|
 		"""
 		embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new url: member.avatar_url
 		embed.colour = config['color']
+	end
+end
+
+bot.command :avatar do |event, member|
+	member = member != nil ? event.bot.parse_mention(member).on(event.server) : event.user
+	event.channel.send_embed do |embed|
+		embed.colour = config['color']
+		embed.image = Discordrb::Webhooks::EmbedImage.new url: member.avatar_url
+		embed.description = member.name
+		embed.author = Discordrb::Webhooks::EmbedAuthor.new name: event.user.distinct, icon_url: event.user.avatar_url
 	end
 end
 
