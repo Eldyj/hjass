@@ -5,10 +5,10 @@ As first you should to create a `config.yml` file with content:
 
 ```yaml
 Token: "abCdEfGhI" # token here
-ID: 12345678 # client id (now random)
+ID: 12345678 # client id (here random)
 prefix: "prefix" # default value is "-"
 color: 0xHEXCOL # color for embed, default value is 0xff3375
-version: 0.1 # version of bot, now 0.2
+version: 0.1 # version of bot, current 0.2
 ```
 Then go to terminal and run this command:
 ```console
