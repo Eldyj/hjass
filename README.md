@@ -4,8 +4,8 @@ How to start the bot?
 As first you should to create a `config.yml` file with content:
 
 ```yaml
-token: "abCdEfGhI" # token here
-id: 12345678 # client id (here random)
+token: "abCdEfGhI" # your bot token
+id: 12345678 # client id
 prefix: "prefix" # default value is "-"
 color: 0xHEXCOL # color for embed, default value is 0xff3375
 version: 0.1 # version of bot, current 0.2
