@@ -1,26 +1,28 @@
-require  'discordrb'                  # main library
-require  'discordrb/webhooks'         # for webhooks
-require  'yaml'                       # for configs
-require  'base64'                     # for base64 decode & encode
-require  './codings.rb'               # more custom codings
-include  Space0                       # a1z26 like coding
-include  WrongLay                     # decode wrong keyboard layour
-config = YAML.load_file "config.yml"  # bot config, for color name version, etc
+require 'discordrb'
+require 'discordrb/webhooks'
+require 'yaml'
+require 'base64'
+require './libs/codings.rb'
+require './libs/files.rb'
+include EZF
+include Space0
+include WrongLay
+config = YAML.load_file './yaml/config.yml'
 
 def is_lang? var
 	return var == 'ru' || var == 'eng' || var == 'рус' || var == 'англ'
 end
 
 bot =	Discordrb::Commands::CommandBot.new(
-	token:     config['token'],
+	token: config['token'],
 	client_id: config['id'],
-	prefix:    config['prefix']
+	prefix: config['prefix']
 )
 
 bot.command :help do |event|
 	event.channel.send_embed do |embed|
 		embed.title = "Команды"
-		embed.description = """
+		embed.description = '''
 			*---Информация*
 			`help`: список комманд
 			`changelog`: изменения в обновлении
@@ -46,7 +48,7 @@ bot.command :help do |event|
 			`space0_encode`: зашифровывает сообщение в space 0
 			`wronglay_decode`: расшифровывает неправильную раскладку
 			`wronglay_encode`: зашифровывае сообщение в англ. раскладку
-		"""
+		'''
 		embed.colour = config['color']
 	end
 end
@@ -55,7 +57,7 @@ bot.command :changelog do |event, version|
 	version = version == nil ? config['version'] : version.to_f <= config['version'] ? version.to_f : config['version']
 	event.channel.send_embed do |embed|
 		embed.title = "#{config['name']} v#{version} changelog"
-		embed.description =  YAML.load_file('changelog.yml')[version.to_s]
+		embed.description =  YAML.load_file('./yaml/changelog.yml')[version.to_s]
 		embed.colour = config['color']
 	end
 end
@@ -83,7 +85,7 @@ end
 
 bot.command :coin, max_args:1 do |event, args|
 	coin = rand 0 .. 1
-	variants = YAML.load_file './coins.yml'
+	variants = YAML.load_file './yaml/coins.yml'
 	variant = rand 0 ... variants.length
 	if  coin == 1 && args != nil
 		win = args.downcase == 'орёл' || args.downcase == 'орел' ? variants[variant][0] : variants[variant][2]
@@ -184,7 +186,14 @@ bot.command :server do |event|
 end
 
 bot.command :profile do |event, member|
-	member = member != nil ? event.bot.parse_mention(member).on(event.server) : event.user
+	if member != nil
+		if member.to_i != nil
+			member = "<@#{member}>"
+		end
+		member = event.bot.parse_mention(member).on(event.server)
+	else
+		member = event.user
+	end
 	boost_time = member.boosting_since == nil ? 'Никогда' : member.boosting_since
 	event.channel.send_embed do |embed|
 		embed.title = "#{member.username}"
@@ -192,8 +201,8 @@ bot.command :profile do |event, member|
 			идентификатор: **#{member.id}**
 			высшая роль: **#{member.highest_role.name}**
 			последний буст: **#{boost_time}**
-			присоеденился: **#{member.joined_at.to_s[0 ... 18]}**
-			присоеденился в дискорд: **#{member.creation_time.to_s[0 ... 18]}**
+			присоеденился: **#{member.joined_at.to_s[0 ... 19]}**
+			присоеденился в дискорд: **#{member.creation_time.to_s[0 ... 19]}**
 		"""
 		embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new url: member.avatar_url
 		embed.colour = config['color']
@@ -201,7 +210,14 @@ bot.command :profile do |event, member|
 end
 
 bot.command :avatar do |event, member|
-	member = member != nil ? event.bot.parse_mention(member).on(event.server) : event.user
+	if member != nil
+		if member.to_i != nil
+			member = "<@#{member}>"
+		end
+		member = event.bot.parse_mention(member)#.on(event.server)
+	else
+		member = event.user
+	end
 	event.channel.send_embed do |embed|
 		embed.colour = config['color']
 		embed.image = Discordrb::Webhooks::EmbedImage.new url: member.avatar_url
@@ -209,47 +225,64 @@ bot.command :avatar do |event, member|
 	end
 end
 
-bot.command :ban ,min_args:1, max_args:1 do |event, args|
-  member = event.bot.parse_mention(args)
-  if event.author.permission? :ban_members
-    begin
-			event.server.ban member
-		rescue Discordrb::Errors::NoPermission
-			resault = 'У меня нет прав чтобы забанить этого пользвователя!'
-		else
-			resault = "#{args} Забанен"      
-    end
-	elsif !event.author.permission? :kick_members
-    resault = 'У вас нет прав что-бы отправить этого пользователя в баню'
-  end
-	event.channel.send_embed do |embed|
-		embed.title = "Бан"
-		embed.description = resault
-		embed.colour = config['color']
+bot.command :ban do |event, member|
+	if member != nil
+		if member.to_i != nil
+			member = "<@#{member}>"
+		end
+		member = event.bot.parse_mention member
+		if event.author.permission? :ban_members
+			begin
+				event.server.ban member
+			rescue Discordrb::Errors::NoPermission
+				resault = 'У меня нет прав чтобы забанить этого пользвователя!'
+			else
+				resault = "#{member.distinct} #{member.id == 940246678139723867 ? 'ТЫ ЗАБАНЕН, Я НЕ БУДУ ТЕБЯ РАЗБАНИВАТЬ': 'забанен'}"      
+			end
+		elsif !event.author.permission? :kick_members
+			resault = 'У вас нет прав что-бы отправить этого пользователя в баню'
+		end
+		event.channel.send_embed do |embed|
+			embed.title = "Бан"
+			embed.description = resault
+			embed.colour = config['color']
+		end
+	end
+end
+
+bot.command :unban do |event, member|
+	if member != nil
+		if member.to_i != nil
+			member = "<@#{member}>"
+		end
+		member = event.bot.parse_mention member
+		if event.author.permission? :ban_members
+			begin
+				event.server.unban member
+			rescue Discordrb::Errors::NoPermission
+				resault = 'У меня нет прав чтобы разбанить этого пользвователя!'
+			else
+				resault = "#{member.distinct} Разбанен"      
+			end
+		elsif !event.author.permission? :kick_members
+			resault = 'У вас нет прав что-бы забрать этого пользователя из бани'
+		end
+		event.channel.send_embed do |embed|
+			embed.title = "Разбан"
+			embed.description = resault
+			embed.colour = config['color']
+		end
 	end
 end
 
 bot.command :clear do |event, args|
   howmatch = args.to_i
 	if event.author.permission? :manage_messages
-    begin
+		begin
 			if howmatch <= 99
 				event.channel.prune howmatch
-			elsif howmatch >= 100 && howmatch <= 9999
-				if howmatch>=1000
-					slep = [1.0/4.0, 1.0/2.0]
-				else
-					slep = [1.0/100.0, 1.0/100.0]
-				end
-				while howmatch >= 100
-					sleep(slep[0])
-					event.channel.prune 100
-					howmatch -= 100
-					sleep(slep[1])
-				end
-				if howmatch > 0
-					event.channel.prune howmatch
-				end
+			else
+				result = "Слишком много сообщений для очистки"
 			end
 		rescue Discordrb::Errors::NoPermission
 			resault = 'У меня нет прав чтобы очистить этот канал'
@@ -258,7 +291,7 @@ bot.command :clear do |event, args|
 				resault = 'Слишком много сообщений для удаления!'
 			else
 				disclaimer = args.to_i > 100 ? '(возможно медленно потому-что сообщение удалялись с шагом 100)' : ''
-				resault = "Канал успешно очищен, **#{args}** сообений удалено\n#{disclaimer}"
+				resault = "Канал успешно очищен, **#{args}** сообений удалено"
 			end
     end
   end
@@ -269,13 +302,16 @@ bot.command :clear do |event, args|
 	end
 end
 
-bot.command :kick, min_args:1, max_args:1 do |event, args|
-  member = event.bot.parse_mention args
+bot.command :kick, min_args:1, max_args:1 do |event, member|
+	if member.to_i != nil
+		member = "<@#{member}>"
+	end
+	member = event.bot.parse_mention member
   if event.author.permission? :kick_members
     begin
 			event.server.kick member
 		rescue Discordrb::Errors::NoPermission
-			resault = "У меня нет прав на кик #{args}!"
+			resault = "У меня нет прав на кик #{member}!"
 		else
 			resault = "#{member.distinct} изгнан"
     end
