@@ -1,7 +1,7 @@
 # Hjass is a discord bot which made for fun
 
 How to start the bot?
-As first you should to create a `config.yml` file with content:
+As first you should to create a `yaml/config.yml` file with content:
 
 ```yaml
 token: "abCdEfGhI"         # your bot token
